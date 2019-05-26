@@ -1,7 +1,7 @@
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
-from keras.layers.recurrent import LSTM, GRU  # noqa
-from keras.utils.data_utils import get_file
+from keras.layers.recurrent import LSTM, GRU
+from keras.datasets.data_utils import get_file
 from keras.optimizers import RMSprop
 import numpy as np
 import sys
@@ -10,7 +10,7 @@ import random
 import sys
 import os
 import re
-from StringIO import StringIO
+from io import StringIO
 from LSTMPeephole import LSTMPeephole
 
 BATCH_SIZE = 2 ** 13
@@ -61,8 +61,8 @@ def generate_training_data(text, char_indices, batch_size=BATCH_SIZE):
     for i in range(batch_size):
         X[i] = next(generators[i]).reshape(X[i].shape)
 
-    indices_char = {v:k for (k,v) in char_indices.items()}
-
+    indices_char = {v:k for (k,v) in list(char_indices.items())}
+    
     while True:
         for i in range(batch_size):
             y[i] = next(generators[i])
@@ -78,7 +78,7 @@ def build_model(char_count, batch_size=BATCH_SIZE):
     model.add(Dense(char_count))
     model.add(Activation('softmax'))
     learning_rate = .00001 * batch_size / (2.0 ** 10)
-    print("Running with batch size {} learning rate {}".format(batch_size, learning_rate))
+    print(("Running with batch size {} learning rate {}".format(batch_size, learning_rate)))
     optimizer = RMSprop(lr=learning_rate)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer)
     return model
@@ -111,7 +111,7 @@ def build_visualization(layers, old_weights, run_name, iteration):
     visualization_rows = []
     for i, layer in enumerate(layers):
         weights = layer.get_value()
-        print("Weights layer {} max is {} min is {}".format(layer, weights.max(), weights.min()))
+        print(("Weights layer {} max is {} min is {}".format(layer, weights.max(), weights.min())))
         weight_update = np.abs(weights - old_weights[i])
         weight_update *= 255.0 / 0.001
         weights_normalized = weights * 128.0 / weights.max() + 128.0
@@ -125,7 +125,7 @@ def build_visualization(layers, old_weights, run_name, iteration):
 
 def main(run_name, text):
     chars = set(text)
-    print('Found {} distinct characters: {}'.format(len(chars), ''.join(chars)))
+    print(('Found {} distinct characters: {}'.format(len(chars), ''.join(chars))))
     char_indices, indices_char = make_char_lookup_table(text)
 
     model = build_model(char_count=len(char_indices))
@@ -141,8 +141,8 @@ def main(run_name, text):
     model.load_weights('models/bern.iter399.h5')
 
     for iteration in range(1, 1000):
-        print('-' * 50)
-        print('Iteration {}'.format(iteration))
+        print(('-' * 50))
+        print(('Iteration {}'.format(iteration)))
         model.reset_states()
 
         batches_per_minute = 2 ** 20 / BATCH_SIZE
@@ -152,16 +152,16 @@ def main(run_name, text):
             sys.stdout.write("\rBatch {} Loss: {}\t".format(i, results))
             sys.stdout.flush()
         sys.stdout.write('\n')
-        print ("Finished iteration {} after {:.2f} sec".format(iteration, time.time() - start_time))
+        print(("Finished iteration {} after {:.2f} sec".format(iteration, time.time() - start_time)))
 
         new_weights = [layer.get_value() for layer in layers]
         #build_visualization(layers, old_weights, run_name, iteration)
         old_weights = new_weights
-
+        
         # Copy weights to a light-weight version of the model used for prediction
         for slow_layer, fast_layer in zip(model.layers, fast_model.layers):
             fast_layer.set_weights(slow_layer.get_weights())
-        next_char = random.choice(char_indices.keys())
+        next_char = random.choice(list(char_indices.keys()))
         for i in range(512 * 2):
             next_char = predict(fast_model, next_char, char_indices, indices_char, batch_size=1)
             sys.stdout.write(next_char)
@@ -173,13 +173,13 @@ def main(run_name, text):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('Usage: {} text_corpus.txt run_name'.format(sys.argv[0]))
+        print(('Usage: {} text_corpus.txt run_name'.format(sys.argv[0])))
         print('Text corpus should be at least 100k characters')
         print('It is recommended to run this on a GPU')
         exit()
     filename = sys.argv[1]
     run_name = sys.argv[2]
     text = read_text_from_file(filename)
-    print('Text length {} characters'.format(len(text)))
+    print(('Text length {} characters'.format(len(text))))
     main(run_name, text)
 
