@@ -21,9 +21,9 @@ def visualization():
 @app.route('/ask_question')
 def ask_question():
     question = flask.request.args.get('question') + '. '
-    print 'Received question: {}'.format(question)
+    print('Received question: {}'.format(question))
     answer = bernie.ask_bernie(model, question, char_indices, indices_char)
-    print 'Returning answer: {}'.format(answer)
+    print('Returning answer: {}'.format(answer))
     return answer
 
 @app.route('/')

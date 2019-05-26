@@ -23,7 +23,7 @@ def main():
     ask_bernie(model, '', char_indices, indices_char)
     while True:
         try:
-            question = raw_input('> ')
+            question = input('> ')
             ask_bernie(model, question, char_indices, indices_char)
         except Exception as e:
             traceback.print_exc(file=sys.stdout)

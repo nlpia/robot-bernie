@@ -23,7 +23,7 @@ def parse_dictionary(lines, scale_factor=.2):
     for line in lines:
         tokens = line.strip().split()
         if len(tokens) < 2:
-            print("Warning, error parsing word vector on line: {}".format(line))
+            print(("Warning, error parsing word vector on line: {}".format(line)))
             continue
         word = tokens[0]
         vector = np.asarray([[float(n) for n in tokens[1:]]])[0]
@@ -34,7 +34,7 @@ def parse_dictionary(lines, scale_factor=.2):
         i += 1
     sys.stdout.write("\n")
 
-    print("Finished parsing {} words".format(len(word_vectors)))
+    print(("Finished parsing {} words".format(len(word_vectors))))
     return word_vectors
 
 
@@ -51,7 +51,7 @@ def closest_word(word2vec, unknown_vector):
     best_distance = 1000
     best_word = '?'
     best_vector = unknown_vector
-    for word, vector in word2vec.items():
+    for word, vector in list(word2vec.items()):
         distance = np.linalg.norm(unknown_vector - vector)
         if distance < best_distance:
             best_distance = distance
@@ -104,33 +104,33 @@ def generate_training_data(wordvectors, words, batch_size, word_to_idx):
 
 
 def main(dict_file, corpus_file, tag, model_filename=None):
-    print("Loading dictionary {}".format(dict_file))
+    print(("Loading dictionary {}".format(dict_file)))
     lines = open(dict_file).readlines()
-    print("Loaded {} lines".format(len(lines)))
+    print(("Loaded {} lines".format(len(lines))))
     word2vec = parse_dictionary(lines)
 
-    print("Converting training data {} to word vectors...".format(corpus_file))
+    print(("Converting training data {} to word vectors...".format(corpus_file)))
     text = open(corpus_file).read()
     text = re.sub(r'[^a-zA-Z0-9\.]+', ' ', text).lower().replace('.', ' . ')
     words = text.split()
     wordvectors = np.asarray([word2vec.get(word) for word in words if word in word2vec])
     words = np.asarray([word for word in words if word in word2vec])
-    print("Vectorized {} words".format(len(words)))
+    print(("Vectorized {} words".format(len(words))))
     word_count, dimensionality = wordvectors.shape
 
     word_to_idx, idx_to_word = corpus_vocabulary(words)
-    print("Found {} distinct words in corpus".format(len(word_to_idx)))
+    print(("Found {} distinct words in corpus".format(len(word_to_idx))))
 
     batch_size = 128
     model = build_model(wordvectors, batch_size, word_to_idx)
     if model_filename:
-        print("Loading weights from file {}".format(model_filename))
+        print(("Loading weights from file {}".format(model_filename)))
         model.load_weights(model_filename)
     generator = generate_training_data(wordvectors, words, batch_size, word_to_idx)
 
     start_time = time.time()
     for iteration in range(1000):
-        print("Starting iteration {} after {} seconds".format(iteration, time.time() - start_time))
+        print(("Starting iteration {} after {} seconds".format(iteration, time.time() - start_time)))
         model.reset_states()
         batches_per_minute = 2 ** 18 / batch_size 
         for i in range(batches_per_minute):
@@ -146,7 +146,7 @@ def main(dict_file, corpus_file, tag, model_filename=None):
         context_words = words[idx:idx + input_len]
 
         model.reset_states()
-        print "Input: "
+        print("Input: ")
         for vector, word in zip(context_vectors, context_words):
             in_array = np.zeros( (batch_size, 1, dimensionality) )
             in_array[0] = vector
@@ -154,7 +154,7 @@ def main(dict_file, corpus_file, tag, model_filename=None):
             model.predict(in_array, batch_size=batch_size)[0]
         sys.stdout.write('\n')
 
-        print "Output: "
+        print("Output: ")
         predicted_word = word
         in_array = np.zeros( (batch_size, 1, dimensionality) )
         for i in range(5):
