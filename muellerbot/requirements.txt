@@ -1,0 +1,2 @@
+## BERT
+-e git+https://github.com/totalgood/keras-bert.git@master#egg=keras_bert
