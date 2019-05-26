@@ -1,0 +1,3 @@
+## Django Admin talk code-samples by David Fischer at San Diego Python User Group May 2019
+Django==2.2.1
+django-debug-toolbar==1.11
